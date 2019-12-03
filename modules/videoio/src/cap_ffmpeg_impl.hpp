@@ -1193,6 +1193,10 @@ double CvCapture_FFMPEG::getProperty( int property_id ) const
         return (double)frame.width;
     case CAP_PROP_FRAME_HEIGHT:
         return (double)frame.height;
+    case CAP_PROP_OPEN_TIMEOUT:
+        return READ_TIMEOUT;
+    case CAP_PROP_READ_TIMEOUT:
+        return READ_TIMEOUT;
     case CAP_PROP_FPS:
         return get_fps();
     case CAP_PROP_FOURCC:
