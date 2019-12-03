@@ -183,6 +183,7 @@ extern "C" {
 //#endif
 //#endif
 
+#if USE_AV_INTERRUPT_CALLBACK
 #ifdef _WIN32
 // http://stackoverflow.com/questions/5404277/porting-clock-gettime-to-windows
 
