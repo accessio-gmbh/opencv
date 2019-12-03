@@ -175,17 +175,13 @@ extern "C" {
 #endif
 
 
-#ifndef USE_AV_INTERRUPT_CALLBACK
-#if LIBAVFORMAT_BUILD >= CALC_FFMPEG_VERSION(53, 21, 0)
+//#ifndef USE_AV_INTERRUPT_CALLBACK
+//#if LIBAVFORMAT_BUILD >= CALC_FFMPEG_VERSION(53, 21, 0)
 #define USE_AV_INTERRUPT_CALLBACK 1
-#else
-#define USE_AV_INTERRUPT_CALLBACK 0
-#endif
-#endif
-
-#if USE_AV_INTERRUPT_CALLBACK
-#define LIBAVFORMAT_INTERRUPT_OPEN_TIMEOUT_MS 30000
-#define LIBAVFORMAT_INTERRUPT_READ_TIMEOUT_MS 30000
+//#else
+//#define USE_AV_INTERRUPT_CALLBACK 0
+//#endif
+//#endif
 
 #ifdef _WIN32
 // http://stackoverflow.com/questions/5404277/porting-clock-gettime-to-windows
