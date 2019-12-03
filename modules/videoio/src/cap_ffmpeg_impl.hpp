@@ -478,6 +478,9 @@ static AVRational _opencv_ffmpeg_get_sample_aspect_ratio(AVStream *stream)
 
 struct CvCapture_FFMPEG
 {
+    static int READ_TIMEOUT;
+    static int OPEN_TIMEOUT;
+
     bool open( const char* filename );
     void close();
 
@@ -532,6 +535,9 @@ struct CvCapture_FFMPEG
     AVInterruptCallbackMetadata interrupt_metadata;
 #endif
 };
+
+static int READ_TIMEOUT = 5000;
+static int OPEN_TIMEOUT = 5000;
 
 void CvCapture_FFMPEG::init()
 {
@@ -866,7 +872,7 @@ bool CvCapture_FFMPEG::open( const char* _filename )
 
 #if USE_AV_INTERRUPT_CALLBACK
     /* interrupt callback */
-    interrupt_metadata.timeout_after_ms = LIBAVFORMAT_INTERRUPT_OPEN_TIMEOUT_MS;
+    interrupt_metadata.timeout_after_ms = OPEN_TIMEOUT;
     get_monotonic_time(&interrupt_metadata.value);
 
     ic = avformat_alloc_context();
@@ -1017,7 +1023,7 @@ bool CvCapture_FFMPEG::grabFrame()
 #if USE_AV_INTERRUPT_CALLBACK
     // activate interrupt callback
     get_monotonic_time(&interrupt_metadata.value);
-    interrupt_metadata.timeout_after_ms = LIBAVFORMAT_INTERRUPT_READ_TIMEOUT_MS;
+    interrupt_metadata.timeout_after_ms = READ_TIMEOUT;
 #endif
 
     // get the next frame
@@ -1385,6 +1391,12 @@ bool CvCapture_FFMPEG::setProperty( int property_id, double value )
 
             picture_pts=(int64_t)value;
         }
+        break;
+    case CAP_PROP_OPEN_TIMEOUT:
+        OPEN_TIMEOUT = value;
+        break;
+    case CAP_PROP_READ_TIMEOUT:
+        READ_TIMEOUT = value;
         break;
     default:
         return false;
