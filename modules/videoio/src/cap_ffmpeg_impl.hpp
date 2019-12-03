@@ -533,8 +533,8 @@ struct CvCapture_FFMPEG
 #endif
 };
 
-static int READ_TIMEOUT = 5000;
-static int OPEN_TIMEOUT = 5000;
+int CvCapture_FFMPEG::READ_TIMEOUT = 5000;
+int CvCapture_FFMPEG::OPEN_TIMEOUT = 5000;
 
 void CvCapture_FFMPEG::init()
 {
