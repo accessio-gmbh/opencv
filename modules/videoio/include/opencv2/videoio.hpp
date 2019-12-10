@@ -173,11 +173,9 @@ enum VideoCaptureProperties {
        CAP_PROP_BACKEND       =42, //!< Current backend (enum VideoCaptureAPIs). Read-only property
        CAP_PROP_CHANNEL       =43, //!< Video input or Channel Number (only for those cameras that support)
        CAP_PROP_AUTO_WB       =44, //!< enable/ disable auto white-balance
-       CAP_PROP_WB_TEMPERATURE=45, //!< white-balance color temperature
-       CAP_PROP_OPEN_TIMEOUT  =51,
-       CAP_PROP_READ_TIMEOUT  =52,
+       CAP_PROP_WB_TEMPERATURE=45 //!< white-balance color temperature
 #ifndef CV_DOXYGEN
-       CV__CAP_PROP_LATEST
+       ,CV__CAP_PROP_LATEST
 #endif
      };
 
@@ -482,6 +480,17 @@ enum { CAP_PROP_XI_DOWNSAMPLING                                 = 400, //!< Chan
        CAP_PROP_XI_SENSOR_FEATURE_SELECTOR                      = 585, //!< Selects the current feature which is accessible by XI_PRM_SENSOR_FEATURE_VALUE.
        CAP_PROP_XI_SENSOR_FEATURE_VALUE                         = 586, //!< Allows access to sensor feature value currently selected by XI_PRM_SENSOR_FEATURE_SELECTOR.
      };
+
+/** @name FFMPEG
+    @{
+*/
+
+enum { CAP_PROP_FFMPEG_OPEN_TIMEOUT = 601, //!< Default is 30
+       CAP_PROP_FFMPEG_READ_TIMEOUT = 602  //!< Default is 30
+     };
+
+//! @} FFMPEG
+
 
 //! @} XIMEA
 

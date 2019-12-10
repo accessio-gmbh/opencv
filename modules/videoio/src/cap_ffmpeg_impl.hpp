@@ -533,8 +533,8 @@ struct CvCapture_FFMPEG
 #endif
 };
 
-int CvCapture_FFMPEG::READ_TIMEOUT = 5000;
-int CvCapture_FFMPEG::OPEN_TIMEOUT = 5000;
+int CvCapture_FFMPEG::OPEN_TIMEOUT = 30000;
+int CvCapture_FFMPEG::READ_TIMEOUT = 30000;
 
 void CvCapture_FFMPEG::init()
 {
@@ -1193,9 +1193,9 @@ double CvCapture_FFMPEG::getProperty( int property_id ) const
         return (double)frame.width;
     case CAP_PROP_FRAME_HEIGHT:
         return (double)frame.height;
-    case CAP_PROP_OPEN_TIMEOUT:
-        return READ_TIMEOUT;
-    case CAP_PROP_READ_TIMEOUT:
+    case CAP_PROP_FFMPEG_OPEN_TIMEOUT:
+        return OPEN_TIMEOUT;
+    case CAP_PROP_FFMPEG_READ_TIMEOUT:
         return READ_TIMEOUT;
     case CAP_PROP_FPS:
         return get_fps();
@@ -1393,10 +1393,10 @@ bool CvCapture_FFMPEG::setProperty( int property_id, double value )
             picture_pts=(int64_t)value;
         }
         break;
-    case CAP_PROP_OPEN_TIMEOUT:
+    case CAP_PROP_FFMPEG_OPEN_TIMEOUT:
         OPEN_TIMEOUT = value;
         break;
-    case CAP_PROP_READ_TIMEOUT:
+    case CAP_PROP_FFMPEG_READ_TIMEOUT:
         READ_TIMEOUT = value;
         break;
     default:

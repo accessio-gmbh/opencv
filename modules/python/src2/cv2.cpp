@@ -30,6 +30,7 @@
 #include <numpy/ndarrayobject.h>
 
 #include "pyopencv_generated_include.h"
+#include "opencv2/highgui.hpp"
 #include "opencv2/core/types_c.h"
 #include "opencv2/opencv_modules.hpp"
 #include "pycompat.hpp"
