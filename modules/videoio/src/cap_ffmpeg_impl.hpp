@@ -475,8 +475,8 @@ static AVRational _opencv_ffmpeg_get_sample_aspect_ratio(AVStream *stream)
 
 struct CvCapture_FFMPEG
 {
-    static int READ_TIMEOUT;
-    static int OPEN_TIMEOUT;
+    int read_timeout = 30000;
+    int open_timeout = 30000;
 
     bool open( const char* filename );
     void close();
@@ -532,9 +532,6 @@ struct CvCapture_FFMPEG
     AVInterruptCallbackMetadata interrupt_metadata;
 #endif
 };
-
-int CvCapture_FFMPEG::OPEN_TIMEOUT = 30000;
-int CvCapture_FFMPEG::READ_TIMEOUT = 30000;
 
 void CvCapture_FFMPEG::init()
 {
@@ -869,7 +866,7 @@ bool CvCapture_FFMPEG::open( const char* _filename )
 
 #if USE_AV_INTERRUPT_CALLBACK
     /* interrupt callback */
-    interrupt_metadata.timeout_after_ms = OPEN_TIMEOUT;
+    interrupt_metadata.timeout_after_ms = open_timeout;
     get_monotonic_time(&interrupt_metadata.value);
 
     ic = avformat_alloc_context();
@@ -1020,7 +1017,7 @@ bool CvCapture_FFMPEG::grabFrame()
 #if USE_AV_INTERRUPT_CALLBACK
     // activate interrupt callback
     get_monotonic_time(&interrupt_metadata.value);
-    interrupt_metadata.timeout_after_ms = READ_TIMEOUT;
+    interrupt_metadata.timeout_after_ms = read_timeout;
 #endif
 
     // get the next frame
@@ -1193,10 +1190,6 @@ double CvCapture_FFMPEG::getProperty( int property_id ) const
         return (double)frame.width;
     case CAP_PROP_FRAME_HEIGHT:
         return (double)frame.height;
-    case CAP_PROP_FFMPEG_OPEN_TIMEOUT:
-        return OPEN_TIMEOUT;
-    case CAP_PROP_FFMPEG_READ_TIMEOUT:
-        return READ_TIMEOUT;
     case CAP_PROP_FPS:
         return get_fps();
     case CAP_PROP_FOURCC:
@@ -1224,6 +1217,10 @@ double CvCapture_FFMPEG::getProperty( int property_id ) const
         return _opencv_ffmpeg_get_sample_aspect_ratio(ic->streams[video_stream]).num;
     case CAP_PROP_SAR_DEN:
         return _opencv_ffmpeg_get_sample_aspect_ratio(ic->streams[video_stream]).den;
+    case CAP_PROP_FFMPEG_OPEN_TIMEOUT:
+        return open_timeout;
+    case CAP_PROP_FFMPEG_READ_TIMEOUT:
+        return read_timeout;
     default:
         break;
     }
@@ -1394,10 +1391,10 @@ bool CvCapture_FFMPEG::setProperty( int property_id, double value )
         }
         break;
     case CAP_PROP_FFMPEG_OPEN_TIMEOUT:
-        OPEN_TIMEOUT = value;
+        open_timeout = value;
         break;
     case CAP_PROP_FFMPEG_READ_TIMEOUT:
-        READ_TIMEOUT = value;
+        read_timeout = value;
         break;
     default:
         return false;
