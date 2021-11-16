@@ -528,6 +528,7 @@ struct CvCapture_FFMPEG
     AVInterruptCallbackMetadata interrupt_metadata;
 #endif
 
+    bool grayscaleOutput;
     bool setRaw();
     bool processRawPacket();
     bool rawMode;
@@ -905,6 +906,15 @@ bool CvCapture_FFMPEG::open(const char* _filename, const VideoCaptureParameters&
             {
                 CV_LOG_ERROR(NULL, "VIDEOIO/FFMPEG: CAP_PROP_FORMAT parameter value is invalid/unsupported: " << value);
                 return false;
+            }
+        }
+        if (params.has(CAP_PROP_GRAYSCALE_OUTPUT))
+        {
+            int value = params.get<int>(CAP_PROP_GRAYSCALE_OUTPUT);
+            if (value == 1)
+            {
+                CV_LOG_INFO(NULL, "VIDEOIO/FFMPEG: grayscale output: '" << (_filename ? _filename : "<NULL>") << "'");
+                grayscaleOutput = true;
             }
         }
         if (params.has(CAP_PROP_HW_ACCELERATION))
@@ -1435,13 +1445,14 @@ bool CvCapture_FFMPEG::retrieveFrame(int, unsigned char** data, int* step, int* 
         // Some sws_scale optimizations have some assumptions about alignment of data/step/width/height
         // Also we use coded_width/height to workaround problem with legacy ffmpeg versions (like n0.8)
         int buffer_width = video_st->codec->coded_width, buffer_height = video_st->codec->coded_height;
+        AVPixelFormat pixelFormat = grayscaleOutput ? AV_PIX_FMT_GRAY8 : AV_PIX_FMT_BGR24;
 
         img_convert_ctx = sws_getCachedContext(
                 img_convert_ctx,
                 buffer_width, buffer_height,
                 (AVPixelFormat)sw_picture->format,
                 buffer_width, buffer_height,
-                AV_PIX_FMT_BGR24,
+                pixelFormat,
                 SWS_BICUBIC,
                 NULL, NULL, NULL
                 );
@@ -1451,10 +1462,10 @@ bool CvCapture_FFMPEG::retrieveFrame(int, unsigned char** data, int* step, int* 
 
 #if USE_AV_FRAME_GET_BUFFER
         av_frame_unref(&rgb_picture);
-        rgb_picture.format = AV_PIX_FMT_BGR24;
+        rgb_picture.format = pixelFormat;
         rgb_picture.width = buffer_width;
         rgb_picture.height = buffer_height;
-        if (0 != av_frame_get_buffer(&rgb_picture, 32))
+        if (0 != av_frame_get_buffer(&rgb_picture, grayscaleOutput ? 0 : 32))
         {
             CV_WARN("OutOfMemory");
             return false;
@@ -1463,14 +1474,14 @@ bool CvCapture_FFMPEG::retrieveFrame(int, unsigned char** data, int* step, int* 
         int aligns[AV_NUM_DATA_POINTERS];
         avcodec_align_dimensions2(video_st->codec, &buffer_width, &buffer_height, aligns);
         rgb_picture.data[0] = (uint8_t*)realloc(rgb_picture.data[0],
-                _opencv_ffmpeg_av_image_get_buffer_size( AV_PIX_FMT_BGR24,
+                _opencv_ffmpeg_av_image_get_buffer_size( pixelFormat,
                                     buffer_width, buffer_height ));
         _opencv_ffmpeg_av_image_fill_arrays(&rgb_picture, rgb_picture.data[0],
-                        AV_PIX_FMT_BGR24, buffer_width, buffer_height );
+                        pixelFormat, buffer_width, buffer_height );
 #endif
         frame.width = video_st->codec->width;
         frame.height = video_st->codec->height;
-        frame.cn = 3;
+        frame.cn = grayscaleOutput ? 1 : 3;
         frame.data = rgb_picture.data[0];
         frame.step = rgb_picture.linesize[0];
     }

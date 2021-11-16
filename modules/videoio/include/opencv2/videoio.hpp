@@ -189,6 +189,7 @@ enum VideoCaptureProperties {
        CAP_PROP_OPEN_TIMEOUT_MSEC=53, //!< (**open-only**) timeout in milliseconds for opening a video capture (applicable for FFmpeg back-end only)
        CAP_PROP_READ_TIMEOUT_MSEC=54, //!< (**open-only**) timeout in milliseconds for reading from a video capture (applicable for FFmpeg back-end only)
        CAP_PROP_STREAM_OPEN_TIME_USEC =55, //<! (read-only) time in microseconds since Jan 1 1970 when stream was opened. Applicable for FFmpeg backend only. Useful for RTSP and other live streams
+       CAP_PROP_GRAYSCALE_OUTPUT=56, //<! (**open-only**) Convert to Grayscale instead of RGB
 #ifndef CV_DOXYGEN
        CV__CAP_PROP_LATEST
 #endif
