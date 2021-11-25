@@ -190,10 +190,19 @@ enum VideoCaptureProperties {
        CAP_PROP_READ_TIMEOUT_MSEC=54, //!< (**open-only**) timeout in milliseconds for reading from a video capture (applicable for FFmpeg back-end only)
        CAP_PROP_STREAM_OPEN_TIME_USEC =55, //<! (read-only) time in microseconds since Jan 1 1970 when stream was opened. Applicable for FFmpeg backend only. Useful for RTSP and other live streams
        CAP_PROP_GRAYSCALE_OUTPUT=56, //<! (**open-only**) Convert to Grayscale instead of RGB
+       CAP_PROP_DROP_BROKEN_FRAMES=57, //<! (**open-only**) Drop frame if anything seems to be wrong (FFMPEG err_detect explode)
+       CAP_PROP_LAST_ERROR    =59, //<! Last error
 #ifndef CV_DOXYGEN
        CV__CAP_PROP_LATEST
 #endif
      };
+
+
+enum VideoCaptureError {
+  CAPTURE_ERROR_NONE = 0,
+    CAPTURE_ERROR_BROKEN_FRAME = 1
+};
+
 
 /** @brief cv::VideoWriter generic properties identifier.
  @sa VideoWriter::get(), VideoWriter::set()

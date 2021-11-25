@@ -542,6 +542,7 @@ struct CvCapture_FFMPEG
     VideoAccelerationType va_type;
     int hw_device;
     int use_opencl;
+    int last_error;
 };
 
 void CvCapture_FFMPEG::init()
@@ -585,6 +586,7 @@ void CvCapture_FFMPEG::init()
     va_type = cv::VIDEO_ACCELERATION_NONE;  // TODO OpenCV 5.0: change to _ANY?
     hw_device = -1;
     use_opencl = 0;
+    last_error = 0;
 }
 
 
@@ -889,6 +891,7 @@ bool CvCapture_FFMPEG::open(const char* _filename, const VideoCaptureParameters&
 
     unsigned i;
     bool valid = false;
+    bool drop_broken = false;
 
     close();
 
@@ -908,14 +911,15 @@ bool CvCapture_FFMPEG::open(const char* _filename, const VideoCaptureParameters&
                 return false;
             }
         }
-        if (params.has(CAP_PROP_GRAYSCALE_OUTPUT))
+        if (params.has(CAP_PROP_GRAYSCALE_OUTPUT) && params.get<int>(CAP_PROP_GRAYSCALE_OUTPUT) == 1)
         {
-            int value = params.get<int>(CAP_PROP_GRAYSCALE_OUTPUT);
-            if (value == 1)
-            {
-                CV_LOG_INFO(NULL, "VIDEOIO/FFMPEG: grayscale output: '" << (_filename ? _filename : "<NULL>") << "'");
-                grayscaleOutput = true;
-            }
+            CV_LOG_INFO(NULL, "VIDEOIO/FFMPEG: grayscale output: '" << (_filename ? _filename : "<NULL>") << "'");
+            grayscaleOutput = true;
+        }
+        if (params.has(CAP_PROP_DROP_BROKEN_FRAMES) && params.get<int>(CAP_PROP_DROP_BROKEN_FRAMES) == 1)
+        {
+            CV_LOG_INFO(NULL, "VIDEOIO/FFMPEG: Drop all frames with errors in decoding");
+            drop_broken = true;
         }
         if (params.has(CAP_PROP_HW_ACCELERATION))
         {
@@ -1013,6 +1017,8 @@ bool CvCapture_FFMPEG::open(const char* _filename, const VideoCaptureParameters&
     for(i = 0; i < ic->nb_streams; i++)
     {
         AVCodecContext* enc = ic->streams[i]->codec;
+        if (drop_broken)
+            enc->err_recognition = (1<<3);
 
 //#ifdef FF_API_THREAD_INIT
 //        avcodec_thread_init(enc, get_number_of_cpus());
@@ -1365,6 +1371,7 @@ bool CvCapture_FFMPEG::grabFrame()
         // Decode video frame
 #if USE_AV_SEND_FRAME_API
         if (avcodec_send_packet(video_st->codec, &packet) < 0) {
+            last_error = CAPTURE_ERROR_BROKEN_FRAME;
             break;
         }
         ret = avcodec_receive_frame(video_st->codec, picture);
@@ -1605,6 +1612,8 @@ double CvCapture_FFMPEG::getProperty( int property_id ) const
     case CAP_PROP_STREAM_OPEN_TIME_USEC:
         //ic->start_time_realtime is in microseconds
         return ((double)ic->start_time_realtime);
+    case CAP_PROP_LAST_ERROR:
+        return last_error;
     default:
         break;
     }
@@ -1792,6 +1801,9 @@ bool CvCapture_FFMPEG::setProperty( int property_id, double value )
         rotation_auto = false;
         return false;
 #endif
+    case CAP_PROP_LAST_ERROR:
+        last_error = value;
+        break;
     default:
         return false;
     }
