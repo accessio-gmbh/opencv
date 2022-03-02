@@ -1436,13 +1436,20 @@ bool CvCapture_FFMPEG::retrieveFrame(int, unsigned char** data, int* step, int* 
         //if (av_hwframe_map(sw_picture, picture, AV_HWFRAME_MAP_READ) < 0) {
         if (av_hwframe_transfer_data(sw_picture, picture, 0) < 0) {
             CV_LOG_ERROR(NULL, "Error copying data from GPU to CPU (av_hwframe_transfer_data)");
+            av_frame_unref(sw_picture);
             return false;
         }
     }
 #endif
 
-    if (!sw_picture || !sw_picture->data[0])
+    if (!sw_picture || !sw_picture->data[0]){
+#if USE_AV_HW_CODECS
+        if(sw_picture != picture){
+            av_frame_unref(sw_picture);
+        }
+#endif
         return false;
+    }
 
     if( img_convert_ctx == NULL ||
         frame.width != video_st->codec->width ||
@@ -1464,8 +1471,14 @@ bool CvCapture_FFMPEG::retrieveFrame(int, unsigned char** data, int* step, int* 
                 NULL, NULL, NULL
                 );
 
-        if (img_convert_ctx == NULL)
+        if (img_convert_ctx == NULL){
+#if USE_AV_HW_CODECS
+            if(sw_picture != picture){
+            av_frame_unref(sw_picture);
+        }
+#endif
             return false;//CV_Error(0, "Cannot initialize the conversion context!");
+        }
 
 #if USE_AV_FRAME_GET_BUFFER
         av_frame_unref(&rgb_picture);
@@ -1475,6 +1488,11 @@ bool CvCapture_FFMPEG::retrieveFrame(int, unsigned char** data, int* step, int* 
         if (0 != av_frame_get_buffer(&rgb_picture, grayscaleOutput ? 0 : 32))
         {
             CV_WARN("OutOfMemory");
+#if USE_AV_HW_CODECS
+        if(sw_picture != picture){
+            av_frame_unref(sw_picture);
+        }
+#endif
             return false;
         }
 #else
