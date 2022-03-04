@@ -1160,7 +1160,7 @@ bool CvCapture_FFMPEG::open(const char* _filename, const VideoCaptureParameters&
 
             frame.width = enc->width;
             frame.height = enc->height;
-            frame.cn = 3;
+            frame.cn = grayscaleOutput ? 1 : 3;
             frame.step = 0;
             frame.data = NULL;
             get_rotation_angle();
@@ -1474,8 +1474,8 @@ bool CvCapture_FFMPEG::retrieveFrame(int, unsigned char** data, int* step, int* 
         if (img_convert_ctx == NULL){
 #if USE_AV_HW_CODECS
             if(sw_picture != picture){
-            av_frame_unref(sw_picture);
-        }
+                av_frame_unref(sw_picture);
+            }
 #endif
             return false;//CV_Error(0, "Cannot initialize the conversion context!");
         }
@@ -1489,9 +1489,9 @@ bool CvCapture_FFMPEG::retrieveFrame(int, unsigned char** data, int* step, int* 
         {
             CV_WARN("OutOfMemory");
 #if USE_AV_HW_CODECS
-        if(sw_picture != picture){
-            av_frame_unref(sw_picture);
-        }
+            if(sw_picture != picture){
+                av_frame_unref(sw_picture);
+            }
 #endif
             return false;
         }
